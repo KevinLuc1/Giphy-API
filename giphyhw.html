@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  
+  <title>Giphy APU HW</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+</head>
+
+<body>	
+
+	<div id="buttons">
+	</div>
+    <br><br>
+    <div>
+        <input type="text" id="animalInput">
+        <br>
+        <input type="button" value="click to add new item" id="add-input">
+    </div>
+    <br><br>
+	<div id="gifs">
+	</div>
+
+	
+ 	<script type="text/javascript">
+
+ 	var topics = ["rabbit", "kitten", "turtle", "frog", "cows", "giraffe"];
+
+ 	function makeButton () {
+        //this prevents current buttons from being repeated after submit is clicked
+        $("#buttons").empty();
+
+ 		for (var i = 0; i < topics.length; i++) { //looping through all items in array
+ 			var animalButton = $("<button>"); //make button
+ 			animalButton.addClass("animal"); // adding class to button
+ 			animalButton.attr("data-name", topics[i]); // setting attribute equal to word in topics
+ 			animalButton.text(topics[i]); //putting text inside button as item selected in array
+ 			$("#buttons").append(animalButton); //slap button to screen
+ 		}
+ 	}
+ 	makeButton();
+
+    
+ 	function display(){
+        
+ 		var animal = $(this).data("name");
+ 		$("#gifs").empty(); //deletes current gifs each time a new button is selected
+ 		var queryURL = "https://api.giphy.com/v1/gifs/search?q="+animal+"&api_key=f3b0018e3f3849a99f8bfa0a551c39c7&limit=10";
+ 		
+        $.ajax({
+        	url: queryURL,
+        	method: "GET"
+        })
+        .done(function(response) {
+        	
+
+            //loop through all responses and grab still + animated url
+        	for (var i =0; i < response.data.length; i++) {
+            // creating new vars to save rating, still and animated url
+            var still = response.data[i].images.fixed_height_small_still.url
+            var animate = response.data[i].images.fixed_height_small.url
+            var ratings = response.data[i].rating
+            
+            //add new data atttributes so we can later switch between them
+            var img = $("<img>")
+            img.attr("src", still);
+            img.attr("data-still", still);
+            img.attr("data-animate", animate);
+            img.attr("data-state", "still");
+            img.addClass("imgGif");
+
+            //appending ratings and img to screen
+        	$("#gifs").append("<p>Rating: " + ratings + "</p>");
+            $("#gifs").append(img)
+        	}
+        })
+ 	}
+
+
+ 	$("#gifs").on("click", ".imgGif", function(){
+        
+        var currentState = $(this).attr("data-state");
+        var animateURL = $(this).attr("data-animate");
+        var stillURL = $(this).attr("data-still");
+
+        if (currentState === "still") {
+            $(this).attr("src", animateURL);
+            $(this).attr("data-state", "animate")
+        }
+        else  {
+            $(this).attr("src", stillURL);
+            $(this).attr("data-state", "still")
+        }
+    });
+
+    $("#add-input").on("click", function (){
+        event.preventDefault();
+        var newInput = $("#animalInput").val();
+        topics.push(newInput);
+        makeButton();
+    })
+
+$(document).on("click", ".animal", display);
+
+
+ 	</script>
+
+
+</body>
+</html>
